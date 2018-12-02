@@ -25,7 +25,7 @@ function return_peers(state) {
 
 function handle_gossip(state, handler) {
   return (req, res, next) => {
-    console.log('handling gossip', req.body)
+    log.debug('handling gossip', req.body)
     handler(state, req.body)
     res.send({status: 'ok'})
   }
@@ -46,7 +46,7 @@ function get_server(port) {
   server.use(restify.plugins.requestLogger());
 
   server.pre(function(req, res, next) {
-      server.log.info({params: req.params}, 'processing request');
+      server.log.debug({params: req.params}, 'processing request');
       next();
   });
 

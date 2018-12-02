@@ -42,6 +42,7 @@ startup
 */
 
 const run = P.coroutine(function* (port, master_node) {
+	log.info('starting up', {port: port})
 	const state = initial_state({favorite_book: pick_random_book(), version: 1, my_port: port})
 	const peers = yield lookup_peers(process.env.PORT, MASTER_NODE_PORT)
 	state.peers = new Set(peers)
@@ -52,10 +53,16 @@ const run = P.coroutine(function* (port, master_node) {
 	server.post('/gossip', gossip_handler)
 	update_book = book_update_dater(state)
 	action_at_interval(update_book, 10 * 1000)
-	setInterval(() => log.info('my state\n', state), 10 * 1000)
+	setInterval(() => update_state_display(state), 2 * 1000)
 	start()
 })
 
+
+function update_state_display(state) {
+	 process.stdout.write('\033c'); // clear iterm
+	 console.log('')
+	 log.info('My state:\n', state)
+}
 
 function action_at_interval(action, timeout) {
 	setInterval(action, timeout)
@@ -118,10 +125,10 @@ function build_message(overrides) {
 function forward_message(state, message) {
 	P.resolve(state.peers.values())
 	.map((peer) => {
-		log.info('forwardingint to', `http://localhost:${peer}/gossip`, message)
+		log.debug('forwardingint to', `http://localhost:${peer}/gossip`, message)
 		request.postAsync(`http://localhost:${peer}/gossip`, {body: message, json: true})
 		.catch((e) => {
-			log.info('removing peer', {peer: peer})
+			log.warn('removing peer', {peer: peer})
 			state.peers.delete(peer)
 		})
 	})
@@ -129,18 +136,18 @@ function forward_message(state, message) {
 
 function handle_message(state, message) {
 	if (state.recent_messages.has(message.uuid)) {
-		log.info('seen message, doing nothing')
+		log.debug('seen message, doing nothing')
 		return
 	}
 	updated_state = update_state(state, message)
-	log.info('updated_state', updated_state)
+	log.debug('updated_state', updated_state)
 	if (message.TTL > 1) {
 		forward_message(
 			state,
 			Object.assign(message, {TTL: message.TTL - 1})
 		)
 	} else {
-		log.info('message.TTL expired')
+		log.warn('message.TTL expired')
 	}
 }
 
