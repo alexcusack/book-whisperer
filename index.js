@@ -12,34 +12,6 @@ const log = bunyan.createLogger({
 
 const MASTER_NODE_PORT = '1111'
 const ROOT_URI = 'http://localhost:'
-/* 
-state: 
-{
-	favorite_book, 
-	version, 
-	peers: [],
-	others_favorite_books: {<id>: {book, version}},
-	recent_messages: new Set()
-}
-
-
-message: 
-{
-	originator:,
-	TTL:,
-	uuid,
-	payload,
-}
-*/
-
-
-/* 
-startup
-* pick book 
-* call master node to init peer list (send port i'll listen on)
-* set timers (refresh timers)
-* listen on port
-*/
 
 const run = P.coroutine(function* (port, master_node) {
 	log.info('starting up', {port: port})
@@ -54,9 +26,20 @@ const run = P.coroutine(function* (port, master_node) {
 	update_book = book_update_dater(state)
 	action_at_interval(update_book, 10 * 1000)
 	setInterval(() => update_state_display(state), 2 * 1000)
+	setInterval(() => ask_for_new_friends(state), 12 * 1000)
 	start()
 })
 
+
+function ask_for_new_friends(state) {
+	P.resolve(state.peers.values()).map(peer => {
+		log.info('asking peers for their friend list', {peer: peer})
+		return lookup_peers(process.env.PORT, peer)
+		.then(new_peers => {
+			state.peers = new Set(...state.peers, ...new_peers)
+		})
+	})
+}
 
 function update_state_display(state) {
 	 process.stdout.write('\033c'); // clear iterm
@@ -155,8 +138,6 @@ function have_seen_this_message(state, messageID) {
 	return state.recent_messages.has(messageID)
 }
 
-// update recent messages
-// update known list 
 function update_state(state, message) {
 	state.peers.add(message.originator)
 	state.recent_messages.add(message.uuid)	
@@ -179,7 +160,7 @@ function update_known_favorites(known, sender, version, book) {
 	return known
 }
 
-// tests
+// functional tests
 state = initial_state()
 assert.equal(have_seen_this_message(state, '1234'), false)
 state.recent_messages.add('1234')
@@ -204,6 +185,5 @@ book = 'bat'
 assert.deepEqual(update_known_favorites(known, sender, version, book), known)
 assert.deepEqual(update_known_favorites(known, sender, 2, book), {80: {version: 2, book: 'bat'}})
 assert.deepEqual(update_known_favorites({}, sender, 2, book), {80: {version: 2, book: 'bat'}})
-
 
 run(process.env.PORT)

@@ -18,7 +18,7 @@ function ping(req, res, next) {
 function return_peers(state) {
   return (req, res, net) => {
     res.send({
-      peers: state.peers
+      peers: Array.from(state.peers)
     })
   }
 }
@@ -30,8 +30,6 @@ function handle_gossip(state, handler) {
     res.send({status: 'ok'})
   }
 }
-
-// function get_peers(req, res,)
 
 function get_server(port) {
   const server = restify.createServer({

@@ -1,5 +1,8 @@
+/* 
+	This node must be started first with `node introducer.js`
+	as it plays the role of introducer
+*/
 const {get_server, return_peers} = require('./server')
-
 
 const {start, server} = get_server(1111)
 
@@ -14,7 +17,3 @@ function handle(req, res, next) {
 }
 server.get('/peers', handle)
 start()
-
-
-
-
