@@ -10,7 +10,8 @@ const log = bunyan.createLogger({
 	pid: `port=${process.env.PORT}`
 });
 
-const MASTER_NODE = 'http://localhost:1111'
+const MASTER_NODE_PORT = '1111'
+const ROOT_URI = 'http://localhost:'
 /* 
 state: 
 {
@@ -41,9 +42,8 @@ startup
 */
 
 const run = P.coroutine(function* (port, master_node) {
-	const favorite_book = pick_random_book()
-	const state = initial_state({favorite_book: favorite_book, version: 1, my_port: port})
-	const peers = yield lookup_peers()
+	const state = initial_state({favorite_book: pick_random_book(), version: 1, my_port: port})
+	const peers = yield lookup_peers(process.env.PORT, MASTER_NODE_PORT)
 	state.peers = new Set(peers)
 	const {start, server} = get_server(port)
 	const gossip_handler = handle_gossip(state, handle_message)
@@ -51,8 +51,8 @@ const run = P.coroutine(function* (port, master_node) {
 	server.get('/peers', send_peers)
 	server.post('/gossip', gossip_handler)
 	update_book = book_update_dater(state)
-	action_at_interval(update_book, 3 * 1000)
-	setInterval(() => log.info('state', state), 5 * 1000)
+	action_at_interval(update_book, 10 * 1000)
+	setInterval(() => log.info('my state\n', state), 10 * 1000)
 	start()
 })
 
@@ -61,9 +61,9 @@ function action_at_interval(action, timeout) {
 	setInterval(action, timeout)
 }
 
-function lookup_peers(my_port) {
+function lookup_peers(my_port, their_port) {
 	return request.getAsync({
-		url: MASTER_NODE.concat('/peers'), 
+		url: ROOT_URI.concat(their_port, '/peers'), 
 		qs: {port: my_port}
 	})
 	.then(({body}) => JSON.parse(body))
@@ -71,7 +71,6 @@ function lookup_peers(my_port) {
 }
 
 function pick_random_book() {
-	log.info('picking book')
 	books = fs.readFileSync('./books.txt', 'utf-8').split('\n')
 	randomInt = Math.floor(Math.random() * Math.floor(books.length))
 	return books[randomInt]
