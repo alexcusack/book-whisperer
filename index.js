@@ -24,12 +24,11 @@ const run = P.coroutine(function* (port, master_node) {
 	server.get('/peers', send_peers)
 	server.post('/gossip', gossip_handler)
 	update_book = book_update_dater(state)
-	action_at_interval(update_book, 10 * 1000)
+	setInterval(update_book, 10 * 1000)
 	setInterval(() => update_state_display(state), 2 * 1000)
 	setInterval(() => ask_for_new_friends(state), 12 * 1000)
 	start()
 })
-
 
 function ask_for_new_friends(state) {
 	P.resolve(state.peers.values()).map(peer => {
@@ -45,10 +44,6 @@ function update_state_display(state) {
 	 process.stdout.write('\033c'); // clear iterm
 	 console.log('')
 	 log.info('My state:\n', state)
-}
-
-function action_at_interval(action, timeout) {
-	setInterval(action, timeout)
 }
 
 function lookup_peers(my_port, their_port) {
@@ -134,10 +129,6 @@ function handle_message(state, message) {
 	}
 }
 
-function have_seen_this_message(state, messageID) {
-	return state.recent_messages.has(messageID)
-}
-
 function update_state(state, message) {
 	state.peers.add(message.originator)
 	state.recent_messages.add(message.uuid)	
@@ -162,10 +153,6 @@ function update_known_favorites(known, sender, version, book) {
 
 // functional tests
 state = initial_state()
-assert.equal(have_seen_this_message(state, '1234'), false)
-state.recent_messages.add('1234')
-assert.equal(have_seen_this_message(state, '1234'), true)
-
 assert.deepEqual(
 	update_state(initial_state(), build_message({originator: 88, uuid: 1234, payload: {book: 'dog', version: 1}})), 
 	{
