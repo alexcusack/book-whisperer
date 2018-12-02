@@ -88,7 +88,7 @@ function book_update_dater(state) {
 			uuid: uuidv4(), 
 			payload: {book: favorite_book, version: state.version}
 		}
-		forward_message(state.peers, message)
+		forward_message(state, message)
 	}
 }
 
@@ -116,11 +116,15 @@ function build_message(overrides) {
 	)
 }
 
-function forward_message(peers, message) {
-	P.resolve(peers.values()).map((peer) => {
+function forward_message(state, message) {
+	P.resolve(state.peers.values())
+	.map((peer) => {
 		log.info('forwardingint to', `http://localhost:${peer}/gossip`, message)
 		request.postAsync(`http://localhost:${peer}/gossip`, {body: message, json: true})
-		.catch(console.log)
+		.catch((e) => {
+			log.info('removing peer', {peer: peer})
+			state.peers.delete(peer)
+		})
 	})
 }
 
@@ -133,7 +137,7 @@ function handle_message(state, message) {
 	log.info('updated_state', updated_state)
 	if (message.TTL > 1) {
 		forward_message(
-			state.peers,
+			state,
 			Object.assign(message, {TTL: message.TTL - 1})
 		)
 	} else {
