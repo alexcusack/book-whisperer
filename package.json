@@ -1,11 +1,10 @@
 {
-  "name": "gossip",
+  "name": "book-whisperer",
   "version": "1.0.0",
-  "description": "a gossip protocol",
+  "description": "200 line gossip protocal implementation",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js | ./node_modules/.bin/bunyan -l info -o short",
-    "test": "npm test"
+    "start": "node index.js | ./node_modules/.bin/bunyan -l info -o short"
   },
   "engines": {
     "node": "8.11"
