@@ -1,6 +1,6 @@
-## Gossiper 
+## Book whisperer 
 
-This is a demo implementation of gossip protocol. 
+This is a demo implementation of gossip protocol implemented in javascript. 
 
 Each client has a favorite book that changes every 10 seconds. 
 The objective is that all nodes are aware of each other node's favorite book.
