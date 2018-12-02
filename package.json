@@ -1,0 +1,25 @@
+{
+  "name": "gossip",
+  "version": "1.0.0",
+  "description": "a gossip protocol",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "npm test"
+  },
+  "engines": {
+    "node": "8.11"
+  },
+  "author": "alex cusack",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.5.3",
+    "bunyan": "^1.8.12",
+    "chai": "^4.2.0",
+    "eslint": "^5.9.0",
+    "mocha": "^5.2.0",
+    "pg": "^7.6.1",
+    "request": "^2.88.0",
+    "restify": "^7.2.3"
+  }
+}
