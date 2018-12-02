@@ -1,6 +1,9 @@
 const restify = require('restify');
 const bunyan = require('bunyan');
-const log = bunyan.createLogger({name: "myapp"});
+const log = bunyan.createLogger({
+  name: "server",
+  pid: `port=${process.env.PORT}`
+});
  
 function ping(req, res, next) {
   const timestamp = new Date().toISOString();
@@ -10,12 +13,6 @@ function ping(req, res, next) {
     memMB: memMB
   });
   return next();
-}
-
-function peers(req, res, next) {
-  res.send({
-    peers: [9999, 8888, 5555]
-  })
 }
 
 function return_peers(state) {
