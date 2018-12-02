@@ -74,7 +74,7 @@ function lookup_peers(my_port, their_port) {
 		qs: {port: my_port}
 	})
 	.then(({body}) => JSON.parse(body))
-	.then(({peers}) => peers)
+	.then(({peers}) => peers.filter(p => p !== String(my_port)))
 }
 
 function pick_random_book() {
